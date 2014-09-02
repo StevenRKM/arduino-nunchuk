@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Nunchuk</title>
+        <script src="static/seen.min.js"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/coffee-script/1.7.1/coffee-script.min.js"></script>
+
+  </head>
+  <body>
+    
+<canvas width="900" height="500" id="seen-canvas"></canvas>
+<script type="text/coffeescript" src="static/simplex-noise.coffee"></script>
+<script type="text/coffeescript" id="code">
+  width  = 900
+  height = 500
+    
+  # Create sphere shape with randomly colored surfaces
+  shape = seen.Shapes.sphere(2).scale(height * 0.4)
+  seen.Colors.randomSurfaces2(shape)
+
+  window.shape = shape
+
+  # Create scene and add shape to model
+  scene = new seen.Scene
+    model    : seen.Models.default().add(shape)
+    viewport : seen.Viewports.center(width, height)
+
+  # Create render context from canvas
+  context = seen.Context('seen-canvas', scene).render()
+
+  # Slowly rotate sphere
+  context.animate()
+    #.onBefore((t, dt) -> shape.rotx(dt*1e-4).roty(0.7*dt*1e-4))
+    .start()
+
+  # Enable drag-to-rotate on the canvas
+  dragger = new seen.Drag('seen-canvas', {inertia : true})
+  dragger.on('drag.rotate', (e) ->
+    xform = seen.Quaternion.xyToTransform(e.offsetRelative...)
+    shape.transform(xform)
+    context.render()
+  )
+
+</script>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+  var socket = io();
+
+  var zButton = false;
+  var cButton = false;
+
+  var analogMovement = false;
+
+socket.on('nunchuk', function(nunchuk){
+    //console.log(nunchuk);
+    if(nunchuk.zButton != zButton) {
+        zButton = nunchuk.zButton;
+        if(zButton) seen.Colors.randomSurfaces2(window.shape);
+    }
+
+    if(nunchuk.cButton != cButton) {
+        cButton = nunchuk.cButton;
+        if(cButton) analogMovement = !analogMovement;
+    }
+
+    if(analogMovement) {
+        var analogX = nunchuk.analogX - 122;
+        //console.log(analogX);
+        if(analogX != 0) shape.roty(analogX*0.0001);
+
+        var analogY = nunchuk.analogY - 137;
+        //console.log(analogY);
+        if(analogY != 0) shape.rotx(analogY*-0.0001);
+    } else {
+
+        var accelX = nunchuk.accelX - 500;
+        //console.log(accelX);
+        if(accelX != 0) shape.rotz(accelX*-0.0001);
+
+        var accelY = nunchuk.accelY - 380;
+        //console.log(accelY);
+        if(accelY != 0) shape.rotx(accelY*-0.0001);
+
+        var accelZ = nunchuk.accelZ - 380;
+        //console.log(accelZ);
+        //if(accelZ != 0) shape.rotx(accelZ*-0.0001);
+
+    }
+
+    console.log(nunchuk.accelZ);
+
+});
+</script>
+
+  </body>
+</html>
