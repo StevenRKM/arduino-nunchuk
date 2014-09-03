@@ -46,51 +46,16 @@
 <script src="/socket.io/socket.io.js"></script>
 <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
-  var socket = io();
+var socket = io();
 
-  var zButton = false;
-  var cButton = false;
+socket.on('colors', function(){
+	seen.Colors.randomSurfaces2(window.shape);
+});
 
-  var analogMovement = false;
-
-socket.on('nunchuk', function(nunchuk){
-    //console.log(nunchuk);
-    if(nunchuk.zButton != zButton) {
-        zButton = nunchuk.zButton;
-        if(zButton) seen.Colors.randomSurfaces2(window.shape);
-    }
-
-    if(nunchuk.cButton != cButton) {
-        cButton = nunchuk.cButton;
-        if(cButton) analogMovement = !analogMovement;
-    }
-
-    if(analogMovement) {
-        var analogX = nunchuk.analogX - 122;
-        //console.log(analogX);
-        if(analogX != 0) shape.roty(analogX*0.0001);
-
-        var analogY = nunchuk.analogY - 137;
-        //console.log(analogY);
-        if(analogY != 0) shape.rotx(analogY*-0.0001);
-    } else {
-
-        var accelX = nunchuk.accelX - 500;
-        //console.log(accelX);
-        if(accelX != 0) shape.rotz(accelX*-0.0001);
-
-        var accelY = nunchuk.accelY - 380;
-        //console.log(accelY);
-        if(accelY != 0) shape.rotx(accelY*-0.0001);
-
-        var accelZ = nunchuk.accelZ - 380;
-        //console.log(accelZ);
-        //if(accelZ != 0) shape.rotx(accelZ*-0.0001);
-
-    }
-
-    console.log(nunchuk.accelZ);
-
+socket.on('movement', function(movement){
+	if(movement.x!=0) shape.rotx(movement.x);
+	if(movement.y!=0) shape.roty(movement.y);
+	if(movement.z!=0) shape.rotz(movement.z);
 });
 </script>
 
