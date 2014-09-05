@@ -4,6 +4,9 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var exec = require('child_process').exec;
 
+// sudo chmod a+rw /dev/ttyACM0
+// xev -event keyboard
+
 var url = require("url");
 
 var serialport = require("serialport");
@@ -59,7 +62,8 @@ function arduinoInit() {
 // 0 - webpage joystick
 // 1 - webpage accelerometer
 // 2 - mouse joystick
-// 4 - mouse accelerometer
+// 3 - mouse accelerometer
+// 4 - keyboard
 var mode = 0;
 
 var zButton = false;
@@ -69,6 +73,12 @@ var analogY = 0;
 var accelX = 0;
 var accelY = 0;
 var accelZ = 0;
+
+// keyboard
+var left = false;
+var right = false;
+var up = false;
+var down = false;
 
 function doNunchuk(nunchuk) {
 	io.emit('nunchuk', nunchuk);
@@ -117,7 +127,36 @@ function doNunchuk(nunchuk) {
 		var y = Math.floor(accelY/10);
 		//console.log(x + " " + y);
 		exec("xdotool mousemove_relative -- " + x + " " + y);
-    }
+		
+    } else if(mode == 4){
+		var x = Math.floor(analogX/5);
+		var y = - Math.floor(analogY/5);
+		
+		if(x < 0) {
+			// go left
+			exec("xdotool key 113");
+		} else if(x > 0) {
+			// go right
+			exec("xdotool key 114");
+		}
+		
+		if(y < 0) {
+			// go up
+			exec("xdotool key 111");
+		} else if(y > 0) {
+			// go down
+			exec("xdotool key 116");
+		}
+		
+		// 22 backspace
+		// 36 return
+		// 119 delete
+		
+		//exec("xdotool key 113"); // left
+		//exec("xdotool key 114"); // right
+		//exec("xdotool key 111"); // up
+		//exec("xdotool key 116"); // down
+    }  
 }
 
 app.get('/', function(req, res){
